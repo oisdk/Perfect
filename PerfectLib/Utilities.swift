@@ -90,19 +90,9 @@ public class Encoding {
 	/// Return a String given a character generator.
 	public static func encode<D : UnicodeCodecType, G : GeneratorType where G.Element == D.CodeUnit>(var decoder : D, var generator: G) -> String {
 		var encodedString = ""
-		var finished: Bool = false
-		repeat {
-			let decodingResult = decoder.decode(&generator)
-			switch decodingResult {
-			case .Result(let char):
-				encodedString.append(char)
-			case .EmptyInput:
-				finished = true
-				/* ignore errors and unexpected values */
-			case .Error:
-				finished = true
-			}
-		} while !finished
+    while case let .Result(char) = decoder.decode(&generator) {
+      encodedString.append(char)
+    }
 		return encodedString
 	}
 }
@@ -139,27 +129,22 @@ extension String {
 	/// Returns the String with all special HTML characters encoded.
 	public var stringByEncodingHTML: String {
 		var ret = ""
-		var g = self.unicodeScalars.generate()
-		while let c = g.next() {
-			if c < UnicodeScalar(0x0009) {
-				ret.appendContentsOf("&#x");
-				ret.append(UnicodeScalar(0x0030 + UInt32(c)));
-				ret.appendContentsOf(";");
-			} else if c == UnicodeScalar(0x0022) {
-				ret.appendContentsOf("&quot;")
-			} else if c == UnicodeScalar(0x0026) {
-				ret.appendContentsOf("&amp;")
-			} else if c == UnicodeScalar(0x0027) {
-				ret.appendContentsOf("&#39;")
-			} else if c == UnicodeScalar(0x003C) {
-				ret.appendContentsOf("&lt;")
-			} else if c == UnicodeScalar(0x003E) {
-				ret.appendContentsOf("&gt;")
-			} else if c > UnicodeScalar(126) {
-				ret.appendContentsOf("&#\(UInt32(c));")
-			} else {
-				ret.append(c)
-			}
+    ret.reserveCapacity(characters.underestimateCount())
+    for c in unicodeScalars {
+      switch c {
+      case let c where c < UnicodeScalar(0x0009):
+        ret.appendContentsOf("&#x")
+        ret.append(UnicodeScalar(0x0030 + UInt32(c)))
+        ret.appendContentsOf(";")
+      case UnicodeScalar(0x0022): ret.appendContentsOf("&quot;")
+      case UnicodeScalar(0x0026): ret.appendContentsOf("&amp;")
+      case UnicodeScalar(0x0027): ret.appendContentsOf("&#39;")
+      case UnicodeScalar(0x003C): ret.appendContentsOf("&lt;")
+      case UnicodeScalar(0x003E): ret.appendContentsOf("&gt;")
+      case let c where c > UnicodeScalar(126):
+        ret.appendContentsOf("&#\(UInt32(c));")
+      default: ret.append(c)
+      }
 		}
 		return ret
 	}
