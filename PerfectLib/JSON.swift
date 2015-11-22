@@ -303,9 +303,7 @@ public class JSONDecode {
 	
 	func readObjects() throws {
 		
-		var next = self.next()
-		
-		while let c = next {
+		while let c = self.next() {
 			
 			switch(c) {
 			case json_open_array:
@@ -339,7 +337,6 @@ public class JSONDecode {
 					try handlePop(try readNull())
 				}
 			}
-			next = self.next()
 		}
 	}
 	
