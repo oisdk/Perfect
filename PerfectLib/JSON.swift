@@ -462,9 +462,8 @@ public class JSONDecode {
 			needPeriod = false
 		}
 		
-		var next = self.next()
 		var last = firstChar
-		while let c = next {
+		while let c = self.next() {
 			if c.isDigit() {
 				s.append(c)
 			} else if c == "." && !needPeriod {
@@ -478,7 +477,7 @@ public class JSONDecode {
 				needExp = false
 				s.append(c)
 				
-				next = self.next()
+				let next = self.next()
 				if next != nil && (next! == "-" || next! == "+") {
 					s.append(next!)
 				} else {
@@ -495,7 +494,6 @@ public class JSONDecode {
 				break
 			}
 			last = c
-			next = self.next()
 		}
 		
 		throw JSONError.SyntaxError("Malformed numeric literal")
@@ -569,8 +567,7 @@ public class JSONDecode {
 	}
 	
 	func next() -> UnicodeScalar? {
-		if pushBack != nil {
-			let c = pushBack!
+		if let c = pushBack {
 			pushBack = nil
 			return c
 		}
